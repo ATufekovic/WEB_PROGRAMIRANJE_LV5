@@ -2,6 +2,9 @@
 $erroDesc = "";
 $infoDesc = "";
 
+/**
+ * Prima neke podatke na ulazu pa ih čisti od nepotrebnih razmaka i spriječava jednostavne napade koristeći htmlspecialchars()
+ */
 function test_input($data)
 {
     $data = trim($data);
@@ -9,21 +12,23 @@ function test_input($data)
     $data = htmlspecialchars($data);
     return $data;
 }
-
+/**
+ * Funkcija koja se poziva kad nije odabran checkbox za promjenu slike, pravi provjeru kao kod dodavanja borca ali bez dodanog dijela za obradu slike, šalje jednostavno null glavnoj funkciji za mijenjanje
+ */
 function editWithoutPicture($erroDesc, $infoDesc)
 {
     $name = "";
     $nameFlag = $ageFlag = $infoFlag = $winsFlag = $lossFlag = false;
     $age = $wins = $loss = 0;
     $info = "";
-
+    //provjeri sve ulazne podatke
     if (empty($_POST["name"])) {
         $erroDesc = $erroDesc . "Name is required <br>";
     } else {
         $name = test_input($_POST["name"]);
         $nameFlag = true;
     }
-
+    //provjeravaju se godine dali su iznad nule
     if (empty($_POST["age"])) {
         $erroDesc = $erroDesc . "Age is required <br>";
     } else {
@@ -42,7 +47,7 @@ function editWithoutPicture($erroDesc, $infoDesc)
         $info = test_input($_POST["info"]);
         $infoFlag = true;
     }
-
+    //wins i loss nije važno dali je postavljeno, default je nula u svakom slucaju
     if (empty($_POST["wins"])) {
         $wins = 0;
         $winsFlag = true;
@@ -63,28 +68,31 @@ function editWithoutPicture($erroDesc, $infoDesc)
         //nastavi sa obradom borca ako su osnovni podatci u redu
         require_once "dbconnection.php";
         $dbconn = new DatabaseConnection();
+        //pozovi glavnu funkciju i njoj predaj provjerene podatke
         $dbconn->editFighter($_GET["id"], $name, $age, $info, $wins, $loss, null, false);
-        $infoDesc = $infoDesc . "Fighter updated successfully<br>";
+        header("Location: ./index.php");
         
     } else {
         $erroDesc = $erroDesc . "Error in given data<br>";
     }
 }
-
+/**
+ * Funkcija koja se poziva kad jest odabran checkbox za promjenu slike, pravi provjeru kao kod dodavanja borca zajedno sa dodanim dijela za obradu slike, šalje sve glavnoj funkciji za mijenjanje
+ */
 function editWithPicture($erroDesc, $infoDesc)
 {
     $name = "";
     $nameFlag = $ageFlag = $infoFlag = $winsFlag = $lossFlag = false;
     $age = $wins = $loss = 0;
     $info = "";
-
+    //provjeri sve ulazne podatke
     if (empty($_POST["name"])) {
         $erroDesc = $erroDesc . "Name is required <br>";
     } else {
         $name = test_input($_POST["name"]);
         $nameFlag = true;
     }
-
+    //provjeravaju se godine dali su iznad nule
     if (empty($_POST["age"])) {
         $erroDesc = $erroDesc . "Age is required <br>";
     } else {
@@ -103,7 +111,7 @@ function editWithPicture($erroDesc, $infoDesc)
         $info = test_input($_POST["info"]);
         $infoFlag = true;
     }
-
+    //wins i loss nije važno dali je postavljeno, default je nula u svakom slucaju
     if (empty($_POST["wins"])) {
         $wins = 0;
         $winsFlag = true;
@@ -160,23 +168,41 @@ function editWithPicture($erroDesc, $infoDesc)
             $erroDesc = $erroDesc . "File is not a proper picture <br>";
         } else {
             $infoDesc = $infoDesc . "The file " . basename($_FILES["picture_file"]["name"]) . " has been uploaded<br>";
-            //zapravo napravi komunikaciju sa serverom
             require_once "dbconnection.php";
             $dbconn = new DatabaseConnection();
+            //pozovi glavnu funkciju i njoj predaj provjerene podatke
             $dbconn->editFighter($_GET["id"], $name, $age, $info, $wins, $loss, $_FILES, true);
-            $infoDesc = $infoDesc . "Fighter updated successfully<br>";
+            header("Location: ./index.php");
         }
     } else {
         $erroDesc = $erroDesc . "Error in given data<br>";
     }
 }
+/**
+ * Funkcija koja preuzima id borca iz $_GET varijable, inače ne radi ništa te šalje ju dalje glavnoj funkciji za brisanje boraca
+ */
+function deleteFighter(){
+    if(isset($_GET["id"])){
+        $id = $_GET["id"];
+        require_once "dbconnection.php";
+        $dbconn = new DatabaseConnection();
+        $dbconn->deleteFighter($id);
+        header("Location: ./index.php");
+    }
+}
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (isset($_POST["changePicture"])) {
-        editWithPicture($erroDesc, $infoDesc);
-    } else {
-        editWithoutPicture($erroDesc, $infoDesc);
+    if(isset($_POST["submit"])){
+        if (isset($_POST["changePicture"])) {
+            editWithPicture($erroDesc, $infoDesc);
+        } else {
+            editWithoutPicture($erroDesc, $infoDesc);
+        }
     }
+    else if(isset($_POST["delete"])){
+        deleteFighter();
+    }
+    
 }
 require_once "dbconnection.php";
 $dbconn = new DatabaseConnection();
@@ -286,7 +312,8 @@ $row = $dbconn->getFighterData($_GET["id"]);
                             </div>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary mt-4">Submit</button>
+                    <button type="submit" class="btn btn-primary mt-4" name="submit">Submit</button>
+                    <button type="submit" class="btn btn-danger mt-4" name="delete">Delete fighter</button>
                 </form>
             </div>
             <div class="col">

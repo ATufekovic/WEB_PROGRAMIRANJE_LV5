@@ -5,7 +5,9 @@ $age = $wins = $loss = 0;
 $info = "";
 $picture = null;
 $erroDesc = $infoDesc = "";
-
+/**
+ * Prima neke podatke na ulazu pa ih čisti od nepotrebnih razmaka i spriječava jednostavne napade koristeći htmlspecialchars()
+ */
 function test_input($data)
 {
     $data = trim($data);
@@ -14,7 +16,9 @@ function test_input($data)
     return $data;
 }
 
+//ako je pozvana datoteka sa post-om nastavi sa radom
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    //provjeri sve ulazne podatke
     if (empty($_POST["name"])) {
         $erroDesc = $erroDesc . "Name is required <br>";
     } else {
@@ -22,6 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $nameFlag = true;
     }
 
+    //provjeravaju se godine dali su iznad nule
     if (empty($_POST["age"])) {
         $erroDesc = $erroDesc . "Age is required <br>";
     } else {
@@ -41,6 +46,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $infoFlag = true;
     }
 
+    //wins i loss nije važno dali je postavljeno, default je nula u svakom slucaju
     if (empty($_POST["wins"])) {
         $wins = 0;
         $winsFlag = true;
@@ -93,13 +99,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         if (!$uploadOK) {
-            //datoteka nije pravilna, nista se ne događa
+            //datoteka nije pravilna, nista se ne događa te upozori korisnika
             $erroDesc = $erroDesc . "File is not a proper picture <br>";
         } else {
             $infoDesc = $infoDesc . "The file " . basename($_FILES["picture_file"]["name"]) . " has been uploaded<br>";
-            //zapravo napravi komunikaciju sa serverom
             require_once "dbconnection.php";
             $dbconn = new DatabaseConnection();
+            //pozovi glavnu funkciju i njoj predaj provjerene podatke
             $dbconn->insertFighter($name, $age, $info, $wins, $loss, $_FILES);
             $infoDesc = $infoDesc . "Fighter sent successfully<br>";
         }
@@ -123,7 +129,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="container">
         <h1>New fighter</h1>
         <div class="row">
-            <div class="col">
+            <div class="col"><!-- $_SERVER[PHP_SELF] znaci da ce samu sebe pozivati, time smanjujemo broj potrebnihdatoteka -->
                 <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
                         <div class="row">
@@ -194,7 +200,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <p>Age must be a non-zero positive integer number.</p>
                     <p>Info must not be above 250 characters long.</p>
                     <p>Wins and losses must be zero or positive integer numbers.</p>
-                    <p>The picture file size must be below 60kB in total size.</p>
+                    <p>The picture file size must be below 60kB in total size.</p><!-- U ovom dijelu se korisniku javljaju informacije o postupku, ako se ništa ne dogodi u jednom onda se ništa ne pojavljuje -->
                     <p class="text-warning"><?php echo $erroDesc ?></p>
                     <p class="text-info"><?php echo $infoDesc ?></p>
                 </div>

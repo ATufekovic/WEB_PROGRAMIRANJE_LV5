@@ -1,4 +1,5 @@
 <?php
+//inicijaliziraj vezu za dohvaćanje podataka
 require_once 'dbconnection.php';
 $dbconn = new databaseConnection();
 ?>
@@ -38,6 +39,7 @@ $dbconn = new databaseConnection();
                 <div class="col-auto w-100" style="margin-top: 24px">
                     <div class="row fighter-list">
                         <?php
+                        //dohvati borce te ponovi isto na drugoj strani
                         $dbconn->populateFighters();
                         ?>
                     </div>

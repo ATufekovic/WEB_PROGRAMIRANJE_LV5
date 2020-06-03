@@ -136,7 +136,6 @@ class Fighters {
                     }
                     console.log(prediction);
                     let score = Math.random();
-                    let winner = "";
                     if(score > prediction[0]){
                         console.log("right cat wins: " + score);
                         this._winFighter(temp_fighter_left, temp_fighter_right, 1);
