@@ -1,3 +1,4 @@
+# Anto Tufeković - 1. godina diplomskog studija Računarstvo DRD
 ### Zadatak
 
 Napomena: Html strukturu zadatka unutar **index.php** potrebno je promijeniti kako bi sadržavala dinamički kod za prikaz i potrebno ju je dodatno izmijeniti kako bi odgovarala Vašoj PHP logici (temeljnu html strukturu liste boraca i gumbova poželjno je da ne mijenjate kako ne biste morali raditi velike izmjene JavaScript logike). Zadatak mora sadržavati također svu logiku koja se nalazi unutar LV3 zadatka.
