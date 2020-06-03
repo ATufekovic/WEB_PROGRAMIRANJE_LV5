@@ -20,7 +20,7 @@ class DatabaseConnection
      */
     public function returnPicture($id)
     {
-        $sql = "SELECT picture FROM " . $this->tableName . " WHERE id=" . $id;
+        $sql = "SELECT picture, pictureType FROM " . $this->tableName . " WHERE id=" . $id;
         $result = $this->conn->query($sql);
         if ($result->num_rows > 0) {
             $row = $result->fetch_assoc();
@@ -92,9 +92,15 @@ class DatabaseConnection
     public function insertFighter($name, $age, $info, $wins, $loss, $picture)
     {
         $pictureData = addslashes(file_get_contents($picture["picture_file"]["tmp_name"]));
-        $sql = "INSERT INTO " . $this->tableName . " (name, age, info, wins, loss, picture) VALUES ('" . $name . "','" . $age . "','" . $info . "','" . $wins . "','" . $loss . "','" . $pictureData . "');";
+        $pictureProperties = getimagesize($picture["picture_file"]["tmp_name"]);
+        $sql = "INSERT INTO " . $this->tableName . " (name, age, info, wins, loss, picture, pictureType) VALUES ('" . $name . "','" . $age . "','" . $info . "','" . $wins . "','" . $loss . "','" . $pictureData . "','" . $pictureProperties["mime"] . "');";
         //echo $sql;
         $this->conn->query($sql);
+        //ovo je potrebno jer clearDB ima increment od 10 naspram 1, takvo ponasanje ce pokidati funkcionalnost data-info dijela, ovako se cijela tablica ocisti
+        $sqlCleanUp = "SET @count = 0;
+        UPDATE " . $this->tableName . " SET id = @count := @count + 1;
+        ALTER TABLE ". $this->tableName ." AUTO_INCREMENT = 1;";
+        $this->conn->multi_query($sqlCleanUp);
     }
     /**
      * Funkcija koja prima id i sve podatke borca kojemu se trebaju mijenjati podatci. Ovisno o pictureCheck mijenjat ce i sliku ili ne.
@@ -103,7 +109,8 @@ class DatabaseConnection
     {
         if ($pictureCheck) {
             $pictureData = addslashes(file_get_contents($picture["picture_file"]["tmp_name"]));
-            $sql = "UPDATE " . $this->tableName . " SET name = '" . $name . "', age = '" . $age . "', info = '" . $info . "', wins = '" . $wins . "', loss = '" . $loss . "', picture = '" . $pictureData . "' WHERE id = '" . $id . "';";
+            $pictureProperties = getimagesize($picture["picture_file"]["tmp_name"]);
+            $sql = "UPDATE " . $this->tableName . " SET name = '" . $name . "', age = '" . $age . "', info = '" . $info . "', wins = '" . $wins . "', loss = '" . $loss . "', picture = '" . $pictureData . "', pictureType = '" . $pictureProperties["mime"] . "' WHERE id = '" . $id . "';";
             //echo $sql;
             $this->conn->query($sql);
         } else {
@@ -118,6 +125,7 @@ class DatabaseConnection
     public function deleteFighter($id)
     {
         $sql = "DELETE FROM " . $this->tableName . " WHERE id='" . $id . "';";
+        //poredaj ponovno da se lijepo poslozi sve za data-info, nema toliko podataka da ce utjecati na performanse
         $sqlCleanUp = "SET @count = 0;
         UPDATE " . $this->tableName . " SET id = @count := @count + 1;
         ALTER TABLE ". $this->tableName ." AUTO_INCREMENT = 1;";

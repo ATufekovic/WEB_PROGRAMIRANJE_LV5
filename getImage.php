@@ -5,5 +5,5 @@ $id = $_GET['id'];
 $dbconn = new databaseConnection();
 $row = $dbconn->returnPicture($id);
 
-header("Content-type: image/jpeg");
+header("Content-type: " . $row["pictureType"]);
 echo $row['picture'];
